@@ -1,56 +1,38 @@
-const passport = require('passport');
-const db = require('../models');
-const passportJWT = require('passport-jwt');
+const passport = require("passport");
+const db = require("../models");
+const passportJWT = require("passport-jwt");
 const ExtractJwt = passportJWT.ExtractJwt;
 const JwtStrategy = passportJWT.Strategy;
 
 let jwtOptions = {};
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-jwtOptions.secretOrKey = 'cleveroad';
+jwtOptions.secretOrKey = "cleveroad";
 
-const getUser = async obj => {
-    return await db.User.findOne({
-        where: obj,
-    });
+const getUser = async (obj) => {
+  return await db.User.findOne({
+    where: obj,
+  });
 };
 
+let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
+  console.log("payload received", jwt_payload);
+  let user = getUser({ id: jwt_payload.id });
 
-let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
-    console.log('payload received', jwt_payload);
-    let user = getUser({ id: jwt_payload.id });
-
-    if (user) {
-        next(null, user);
-    } else {
-        next(null, false);
-    }
+  if (user) {
+    next(null, user);
+  } else {
+    next(null, false);
+  }
 });
 
 passport.use(strategy);
 
-/*
-passport.use(new JwtStrategy({
-        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey   : 'cleveroad'
-    },
-    function (jwtPayload, cb) {
-
-        return db.User.findOneById(jwtPayload.id)
-            .then(user => {
-                return cb(null, user);
-            })
-            .catch(err => {
-                return cb(err);
-            });
-    }
-));
-*/
 passport.serializeUser((user, cb) => {
-    cb(null, user);
+  cb(null, user);
 });
 
 passport.deserializeUser((obj, cb) => {
-    cb(null, obj);
+  cb(null, obj);
 });
 
 module.exports = passport;
