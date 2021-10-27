@@ -3,6 +3,15 @@ const isAuthenticated = require('../../config/middleware/isAuthenticated');
 const db = require('../../models');
 const passport = require('passport');
 
+const jwt = require('jsonwebtoken');
+const passportJWT = require("passport-jwt");
+let ExtractJwt = passportJWT.ExtractJwt;
+
+let jwtOptions = {};
+jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+jwtOptions.secretOrKey = 'cleveroad';
+
+
 
 router.get('/', function(req, res) {
     res.json({ message: 'Express is up!' });

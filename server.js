@@ -1,8 +1,6 @@
 const express = require('express');
-const session = require('express-session');
 const path = require('path');
-const logger = require('morgan');
-const passport = require('passport');
+const passport = require('./config/passport');
 const bodyParser = require('body-parser');
 const db = require('./models');
 const routes = require('./routes');
@@ -14,11 +12,11 @@ app.use(passport.initialize());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, 'client/build')));
+//app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.use(logger('dev'));
-app.use(session({ secret: 'cleveroad', resave: true, saveUninitialized: true }));
-app.use(passport.session());
+//app.use(logger('dev'));
+//app.use(session({ secret: 'cleveroad', resave: true, saveUninitialized: true }));
+//app.use(passport.session());
 app.use('/api', routes);
 
 app.get('*', (req, res) => {

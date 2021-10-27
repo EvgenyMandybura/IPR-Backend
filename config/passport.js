@@ -1,10 +1,8 @@
 const passport = require('passport');
 const db = require('../models');
-const jwt = require('jsonwebtoken');
 const passportJWT = require('passport-jwt');
-
-let ExtractJwt = passportJWT.ExtractJwt;
-let JwtStrategy = passportJWT.Strategy;
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
 
 let jwtOptions = {};
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
@@ -16,6 +14,7 @@ const getUser = async obj => {
     });
 };
 
+
 let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
     console.log('payload received', jwt_payload);
     let user = getUser({ id: jwt_payload.id });
@@ -26,9 +25,26 @@ let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
         next(null, false);
     }
 });
-// use the strategy
+
 passport.use(strategy);
 
+/*
+passport.use(new JwtStrategy({
+        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        secretOrKey   : 'cleveroad'
+    },
+    function (jwtPayload, cb) {
+
+        return db.User.findOneById(jwtPayload.id)
+            .then(user => {
+                return cb(null, user);
+            })
+            .catch(err => {
+                return cb(err);
+            });
+    }
+));
+*/
 passport.serializeUser((user, cb) => {
     cb(null, user);
 });
