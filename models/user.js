@@ -25,6 +25,7 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: false,
         },
     });
+    /*
     User.prototype.validPassword = function (password) {
         return bcrypt.compareSync(password, this.password);
     };
@@ -32,5 +33,6 @@ module.exports = function (sequelize, DataTypes) {
     User.addHook('beforeCreate', (user) => {
         user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null);
     });
+     */
     return User;
 };

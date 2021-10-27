@@ -1,18 +1,26 @@
 const router = require('express').Router();
 const isAuthenticated = require('../../config/middleware/isAuthenticated');
 const db = require('../../models');
+const passport = require('passport');
 
-router.get('/secrets', isAuthenticated, (req, res) => {
-    res.json('Talk is cheap. Show me the code. -Linus Torvalds');
+
+router.get('/', function(req, res) {
+    res.json({ message: 'Express is up!' });
 });
 
-router.get('/pictures', isAuthenticated, (req, res) => {
+router.get('/all-products', passport.authenticate('jwt', { session: false }), (req, res) => {
+    db.Picture.findAll().then(pictures=>{
+        res.json(pictures);
+    }).catch(err=>console.log(err));
+})
+
+router.get('/pictures', passport.authenticate('jwt', { session: false }), (req, res) => {
     db.Picture.findAll().then(pictures=>{
         res.json(pictures);
     }).catch(err=>console.log(err));
 });
 
-router.get('/picturesAll', isAuthenticated, (req, res) => {
+router.get('/picturesAll', passport.authenticate('jwt', { session: false }), (req, res) => {
 
     db.Picture.findAll(
         {
@@ -24,7 +32,7 @@ router.get('/picturesAll', isAuthenticated, (req, res) => {
     }).catch(err=>console.log(err));
 });
 
-router.post('/pictureCreate', isAuthenticated, (req, res) => {
+router.post('/pictureCreate', passport.authenticate('jwt', { session: false }), (req, res) => {
     db.Picture.create({
         title: req.body.title,
         creatorEmail: req.body.creatorEmail
@@ -34,5 +42,10 @@ router.post('/pictureCreate', isAuthenticated, (req, res) => {
         res.json(err);
     });
 });
+
+router.get('/protected', passport.authenticate('jwt', { session: false }), function(req, res) {
+    res.json('Success! You can now see this without a token.');
+});
+
 
 module.exports = router;

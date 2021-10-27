@@ -10,13 +10,14 @@ const routes = require('./routes');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+app.use(passport.initialize());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 app.use(logger('dev'));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 app.use(session({ secret: 'cleveroad', resave: true, saveUninitialized: true }));
-app.use(passport.initialize());
 app.use(passport.session());
 app.use('/api', routes);
 
