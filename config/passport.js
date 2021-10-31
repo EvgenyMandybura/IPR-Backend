@@ -1,39 +1,38 @@
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const db = require('../models');
+const passport = require("passport");
+const db = require("../models");
+const passportJWT = require("passport-jwt");
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
 
-passport.use(new LocalStrategy(
-    {
-        usernameField: 'email',
-    },
+let jwtOptions = {};
+jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+jwtOptions.secretOrKey = "cleveroad";
 
-    ((email, password, done) => {
-        db.User.findOne({
-            where: {
-                email,
-            },
-        }).then((dbUser) => {
-            if (!dbUser) {
-                return done(null, false, {
-                    message: 'Incorrect email.',
-                });
-            }
-            if (!dbUser.validPassword(password)) {
-                return done(null, false, {
-                    message: 'Incorrect password.',
-                });
-            }
-            return done(null, dbUser);
-        });
-    }),
-));
+const getUser = async (obj) => {
+  return await db.User.findOne({
+    where: obj,
+  });
+};
+
+let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
+  console.log("payload received", jwt_payload);
+  let user = getUser({ id: jwt_payload.id });
+
+  if (user) {
+    next(null, user);
+  } else {
+    next(null, false);
+  }
+});
+
+passport.use(strategy);
 
 passport.serializeUser((user, cb) => {
-    cb(null, user);
+  cb(null, user);
 });
 
 passport.deserializeUser((obj, cb) => {
-    cb(null, obj);
+  cb(null, obj);
 });
 
 module.exports = passport;

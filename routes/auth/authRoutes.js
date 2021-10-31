@@ -1,40 +1,67 @@
-const router = require('express').Router();
-const db = require('../../models');
-const passport = require('../../config/passport');
+const router = require("express").Router();
+const db = require("../../models");
+const jwt = require("jsonwebtoken");
+const passportJWT = require("passport-jwt");
+let ExtractJwt = passportJWT.ExtractJwt;
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
-  res.json(req.user);
-});
+let jwtOptions = {};
+jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+jwtOptions.secretOrKey = "cleveroad";
 
-router.post('/signup', (req, res) => {
-  db.User.create({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: req.body.password,
-  })
-      .then((dbResponse) => {
-        res.json(dbResponse);
+const createUser = async ({ firstName, lastName, email, password }) => {
+  return await db.User.create({ firstName, lastName, email, password });
+};
+
+const getUser = async (obj) => {
+  return await db.User.findOne({
+    where: obj,
+  });
+};
+
+router.post("/login", async function (req, res, next) {
+  const { email, password } = req.body;
+  if (email && password) {
+    getUser({ email: email })
+      .then((user) => {
+        if (!user) {
+          res.status(401).json({ msg: "No such user found" });
+        }
+        if (user.password === password) {
+          let payload = { id: user.id };
+          let token = jwt.sign(payload, jwtOptions.secretOrKey);
+          res.json({ msg: "ok", token: token, user });
+        } else {
+          res.status(401).json({ msg: "Password is incorrect" });
+        }
       })
       .catch((err) => {
         res.json(err);
       });
-});
-
-router.get('/logout', (req, res) => {
-  req.logout();
-  res.json('logout successful');
-});
-
-router.get('/user_data', (req, res) => {
-  if (!req.user) {
-    res.json({});
-  } else {
-    res.json({
-      email: req.user.email,
-      id: req.user.id,
-    });
   }
+});
+
+router.post("/signup", function (req, res, next) {
+  const { firstName, lastName, email, password } = req.body;
+  getUser({ email: email })
+    .then((user) => {
+      if (!!user) {
+        res.status(401).json({ msg: "This user already exist" });
+      } else {
+        createUser({ firstName, lastName, email, password }).then((user) => {
+          let payload = { id: user.id };
+          let token = jwt.sign(payload, jwtOptions.secretOrKey);
+          res.json({ user, token: token, msg: "account created successfully" });
+        });
+      }
+    })
+    .catch((err) => {
+      res.json(err);
+    });
+});
+
+router.get("/logout", (req, res) => {
+  req.logout();
+  res.json("logout successful");
 });
 
 module.exports = router;
